@@ -82,7 +82,6 @@ class TreeLSTM(torch.nn.Module):
 
         # populate the h and c states respecting computation order
         for n in range(node_order.max() + 1):
-            # h, c = self._run_lstm(n, h, c, features, node_order, adjacency_list, edge_order)
             self._run_lstm(n, h, c, features, node_order, adjacency_list, edge_order)
 
         return h, c
@@ -109,7 +108,6 @@ class TreeLSTM(torch.nn.Module):
 
         # x is a tensor of size n x F
         x = features[node_mask, :]
-        # print('shape of x', x.shape)
         # At iteration 0 none of the nodes should have children
         # Otherwise, select the child nodes needed for current iteration
         # and sum over their hidden states
@@ -140,8 +138,6 @@ class TreeLSTM(torch.nn.Module):
             iou = self.W_iou(x) + self.U_iou(h_sum)
 
         # i, o and u are tensors of size n x M
-        # print(iou.shape)
-        # print(iou.size(1)//3)
         i, o, u = torch.split(iou, iou.size(1) // 3, dim=1)
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
@@ -166,12 +162,9 @@ class TreeLSTM(torch.nn.Module):
             parent_list = [item.sum(0) for item in parent_children]
 
             c_sum = torch.stack(parent_list)
-            # c = c.clone()
             c[node_mask, :] = i * u + c_sum
 
-        # h = h.clone()
         h[node_mask, :] = o * torch.tanh(c[node_mask])
-        # return h, c
 
 
 class PathwayRankingModel(torch.nn.Module):

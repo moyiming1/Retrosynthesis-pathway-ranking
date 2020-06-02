@@ -1,4 +1,4 @@
-from utils.tree_to_fp import linearize_tree_artifical
+from features.tree_to_fp import linearize_tree_artifical
 
 import numpy as np
 

@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+import os, sys
+
+project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_path)
 import pickle
-import urllib
 
 def construct_tree_for_visual(tree, node_info_key, depth=0):
     tree_for_visual = {'smiles': 'http://askcos.mit.edu/draw/smiles/' + str(tree['smiles']).replace('#', '%23'),
@@ -203,7 +205,8 @@ def create_tree_html(trees, file_name, tree_info=None, node_info_key='score',
 
 
 if __name__ == "__main__":
-    file_name = 'all_trees.pickle'
-    with open(file_name, 'r') as TREES:
-        trees = pickle.load(TREES)
-    create_tree_html(trees[9:10], 'test')
+    file_name = project_path + '/data/pathway_train_example.pkl'
+    with open(file_name, 'rb') as f:
+        data = pickle.load(f)
+    trees_to_plot = [d['tree'] for d in data['generated_paths'][0:10]]
+    create_tree_html(trees_to_plot, 'plotted_trees')
