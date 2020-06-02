@@ -4,17 +4,12 @@
 
 ### Requirements:
 
-Python >= 3.7
-
-PyTorch >= 1.4
-
-RDKit >= 2019.09
-
-numpy >= 1.17
-
-scikit-learn >= 0.22.1 
-
-hdbscan >= 0.8.26
+- Python >= 3.7
+- PyTorch >= 1.4
+- RDKit >= 2019.09
+- numpy >= 1.17
+- scikit-learn >= 0.22.1 
+- hdbscan >= 0.8.26
 
 ### Data
 Example data are supplied in the "/data" folder. 
