@@ -201,18 +201,36 @@ def convert_one_record(record, fpsize=2048):
     }
 
 
-def merge_into_batch(batch, to_tensor=False, device=torch.device('cpu')):
-    batch_size = len(batch)
+def merge_into_batch(batch, to_tensor=False, device=None):
+    """
+    Merge fingerprints of individual trees into a single set of arrays.
+
+    Args:
+        batch (list): list of dictionaries containing tree fingerprints
+        to_tensor (bool, optional): if True, convert to torch.tensor
+        device (torch.device, optional): desired device for tensors
+
+    Returns:
+        dict:
+            pfp: np.ndarray or torch.tensor
+            rxnfp: np.ndarray or torch.tensor
+            node_order: np.ndarray or torch.tensor
+            adjacency_list: np.ndarray or torch.tensor
+            edge_order: np.ndarray or torch.tensor
+            num_nodes: list
+            num_trees: list
+            batch_size: int
+    """
     if to_tensor:
-        def process_output(input, dtype='float32'):
-            dtype_dict = {'float32': torch.float32,
-                          'int64': torch.int64}
-            return torch.tensor(input, device=device, dtype=dtype_dict[dtype])
+        import torch
+
+        def process_array(array, dtype):
+            dtype_dict = {'float32': torch.float32, 'int64': torch.int64}
+            return torch.tensor(array, device=device, dtype=dtype_dict[dtype])
     else:
-        def process_output(input, dtype=None):
-            dtype_dict = {'float32': np.float32,
-                          'int64': np.int64}
-            return input.astype(dtype=dtype_dict[dtype])
+        def process_array(array, dtype):
+            dtype_dict = {'float32': np.float32, 'int64': np.int64}
+            return array.astype(dtype=dtype_dict[dtype])
 
     pfp = np.vstack([record['pfp'] for record in batch])
     rxnfp = np.vstack([record['rxnfp'] for record in batch])
@@ -220,35 +238,35 @@ def merge_into_batch(batch, to_tensor=False, device=torch.device('cpu')):
     node_order = np.hstack([record['node_order'] for record in batch])
     edge_order = np.hstack([record['edge_order'] for record in batch])
 
-    num_nodes = []
-
-    if type(batch[0]['num_nodes']) is list:
-        for record in batch: num_nodes += record['num_nodes']
-    else:
-        for record in batch: num_nodes.append(record['num_nodes'])
-    num_trees = [record['num_trees'] for record in batch]
-    # this is used to process adjacency_list
-    record_num_nodes = [record['pfp'].shape[0] for record in batch]
-
-    # adjacency_list needs to add offset when concancate the trees
+    # adjacency_list needs to add offset when concatenate the trees
     adjacency_list = []
     offset = 0
-    for n, a_l in zip(record_num_nodes, [record['adjacency_list'] for record in batch]):
+    for record in batch:
+        n, a_l = record['pfp'].shape[0], record['adjacency_list']
         adjacency_list.append(a_l + offset)
         offset += n
     adjacency_list = np.vstack(adjacency_list)
-    # record_group = np.hstack(record_group)
+
+    num_nodes = []
+    if type(batch[0]['num_nodes']) is list:
+        for record in batch:
+            num_nodes += record['num_nodes']
+    else:
+        for record in batch:
+            num_nodes.append(record['num_nodes'])
+
+    num_trees = [record['num_trees'] for record in batch]
+    batch_size = len(batch)
 
     return {
-        'pfp': process_output(pfp, dtype='float32'),
-        'rxnfp': process_output(rxnfp, dtype='float32'),
-        'node_order': process_output(node_order, dtype='int64'),
-        'adjacency_list': process_output(adjacency_list, dtype='int64'),
-        'edge_order': process_output(edge_order, dtype='int64'),
-        'num_nodes': num_nodes,  # this doesn't need to be tensor
+        'pfp': process_array(pfp, dtype='float32'),
+        'rxnfp': process_array(rxnfp, dtype='float32'),
+        'node_order': process_array(node_order, dtype='int64'),
+        'adjacency_list': process_array(adjacency_list, dtype='int64'),
+        'edge_order': process_array(edge_order, dtype='int64'),
+        'num_nodes': num_nodes,
         'num_trees': num_trees,
         'batch_size': batch_size,
-        # need to revise, not sure whether it needs to be a tensor yet
     }
 
 
