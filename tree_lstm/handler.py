@@ -1,12 +1,16 @@
 """
 This module defines the PathwayRankingHandler for use in Torchserve.
+
+Note that imports look odd because files end up in the same directory once
+they are converted into a model archive and loaded into Torchserve.
 """
 
 import os
 
-import scipy.sparse
 import torch
 from ts.torch_handler.base_handler import BaseHandler
+
+from tree_to_treeLSTM_input import convert_tree_to_singleinput, merge_into_batch
 
 
 class PathwayRankingHandler(BaseHandler):
@@ -36,20 +40,9 @@ class PathwayRankingHandler(BaseHandler):
         print('Model file {0} loaded successfully.'.format(model_pt_path))
 
     def preprocess(self, data):
-        batch = data[0].get('data') or data[0].get('body')
-
-        # Expand sparse matrices
-        shape = (len(batch['node_order']), self.fp_size)
-        pfp = scipy.sparse.csc_matrix(tuple(batch['pfp']), shape=shape).toarray()
-        rxnfp = scipy.sparse.csc_matrix(tuple(batch['rxnfp']), shape=shape).toarray()
-
-        batch['pfp'] = torch.tensor(pfp, device=self.device, dtype=torch.float32)
-        batch['rxnfp'] = torch.tensor(rxnfp, device=self.device, dtype=torch.float32)
-        batch['node_order'] = torch.tensor(batch['node_order'], device=self.device, dtype=torch.int64)
-        batch['adjacency_list'] = torch.tensor(batch['adjacency_list'], device=self.device, dtype=torch.int64)
-        batch['edge_order'] = torch.tensor(batch['edge_order'], device=self.device, dtype=torch.int64)
-
-        return batch
+        trees = data[0].get('data') or data[0].get('body')
+        return merge_into_batch([convert_tree_to_singleinput(tree) for tree in trees],
+                                to_tensor=True, device=self.device)
 
     def inference(self, data, *args, **kwargs):
         pfp = data['pfp']
