@@ -15,7 +15,7 @@ print('cuda available:', torch.cuda.is_available())
 # paths
 data_path = project_path + '/data'
 save_path = project_path + '/trained_model'
-load_model_path = project_path + '/trained_model/treeLSTM512-fp2048.pt'
+load_model_path = project_path + '/trained_model/treeLSTM256-fp2048.pt'
 
 saved_model = torch.load(load_model_path, map_location=lambda storage, loc: storage)
 args, loaded_state_dict = saved_model['args'], saved_model['state_dict']

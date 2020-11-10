@@ -29,3 +29,5 @@ python test_treeLSTM.py
 ```
 
 - A wrapper for pathway ranking model is in "pathway_ranker.py"
+
+- Code for extracting pathways from single-step reaction database is in "pathway_extraction/extract.py"
