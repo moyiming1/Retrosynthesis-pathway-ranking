@@ -14,7 +14,7 @@
 ### Data:
 Example data are supplied in the "/data" folder. 
 
-Trained model is in "/trained_model/treeLSTM512-fp2048.pt".
+Trained model is in "/trained_model/treeLSTM256-fp2048.pt".
 
 ### Code:
 
